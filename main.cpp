@@ -19,6 +19,13 @@ int main(int argc, char* argv[]) {
 	std::string fen6 = "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10 "; // 46
 	std::string temp = "rnBq1k1r/pp2bppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R b KQ - 0 0";
 	ChessEngine chessEngine = ChessEngine(fen5);
+	/*chessEngine.genNextPossibleMoves();
+	for (auto it : chessEngine.chessboard->nextPossibleMoves) {
+		std::cout << (char)it.chesspiece1->getType() << " " << it.oldX << " " << it.oldY << " " << it.newX << " " << it.newY << " ";
+		if (it.chesspiece3)
+			std::cout << "@ " << (char)it.chesspiece3->getType();
+			std::cout << std::endl;
+	}*/
 	chessEngine.computeNextOptimalMove();
 	if (chessEngine.nextOptimalMove.chesspiece1 != NULL) {
 		std::cout << (char)chessEngine.nextOptimalMove.chesspiece1->getType() << std::endl;

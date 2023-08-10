@@ -12,6 +12,7 @@ ChessEngine::ChessEngine() {
 
 ChessEngine::~ChessEngine()
 {
+	delete chessboard;
 }
 
 ChessEngine::ChessEngine(std::string& fen) {
@@ -122,9 +123,9 @@ int ChessEngine::countNodes(std::string fen, int depth)
 		int newX = move.newX;
 		int newY = move.newY;
 		char promotedTo = move.chesspiece3 == NULL ? ' ' : (char)move.chesspiece3->getType();
-		move.chesspiece1->move(newX, newY, promotedTo);
+		chessboard->move(newX, newY, promotedTo);
 		std::string newFen = chessboard->toFen();
-		move.chesspiece1->undo();
+		chessboard->undo();
 		sum += countNodes(newFen, depth - 1);
 	}
 
@@ -134,7 +135,7 @@ int ChessEngine::countNodes(std::string fen, int depth)
 
 void ChessEngine::move(int oldX, int oldY, int newX, int newY, char promotedTo)
 {
-	chessboard->chessboard[oldY][oldX]->move(newX, newY, promotedTo);
+	chessboard->move(newX, newY, promotedTo);
 }
 
 std::vector<std::pair<std::string, int>> ChessEngine::getAllChessboardWithLegalMoveCount(std::string fen, int depth, bool flag) {
@@ -152,11 +153,11 @@ std::vector<std::pair<std::string, int>> ChessEngine::getAllChessboardWithLegalM
 		int newX = move.newX;
 		int newY = move.newY;
 		char promotedTo = move.chesspiece3 == NULL ? ' ' : (char)move.chesspiece3->getType();
-		move.chesspiece1->move(newX, newY, promotedTo);
+		chessboard->move(newX, newY, promotedTo);
 		std::string newFen = chessboard->toFen();
 		std::vector<std::pair<std::string, int>> res2 = getAllChessboardWithLegalMoveCount(newFen, depth - 1, flag);
 		res.insert(res.end(), res2.begin(), res2.end());
-		move.chesspiece1->undo();
+		chessboard->undo();
 	}
 
 	return res;
@@ -169,6 +170,7 @@ void ChessEngine::computeNextOptimalMove()
 	nextOptimalMove = ChessPieceMove();
 	nodeCount = 0;
 	std::string fen = chessboard->toFen();
+	delete chessboard;
 	//minmaxSearch(fen, 0, 3, true);
 	alphabetaSearch(fen, 0, 5, -inf, inf, true);
 	std::cout << nodeCount << std::endl;
@@ -180,45 +182,51 @@ int ChessEngine::minmaxSearch(std::string fen, int depth, int limit, bool isMaxT
 		return transposition_table[fen];
 	fenMap[fen] = true;
 
-	ChessBoard* chessboard = new ChessBoard(fen);
+	ChessBoard* currCB = new ChessBoard(fen);
 	nodeCount++;
+	int val;
 	if (depth == limit) {
-		int val = evaluateChessboard(chessboard);
-		return transposition_table[fen] = val;
+		val = evaluateChessboard(currCB);
 	}
+	else {
+		currCB->genNextPossibleMoves();
+		val = (INT_MAX - 2) * (isMaxTurn ? -1 : 1);
 
-	chessboard->genNextPossibleMoves();
-	int val = (INT_MAX - 2) * (isMaxTurn ? -1 : 1);
+		for (auto move : currCB->nextPossibleMoves) {
+			int newX = move.newX;
+			int newY = move.newY;
+			char promotedTo = move.chesspiece3 == NULL ? ' ' : (char)move.chesspiece3->getType();
+			currCB->move(newX, newY, promotedTo);
+			if (currCB->hasPiece(currCB->isWhitesTurn ? BlackKingType : WhiteKingType) == false) {
+				val = (INT_MAX - 2) * (isMaxTurn ? 1 : -1);
+				break;
+			}
+			std::string newFen = currCB->toFen();
+			currCB->undo();
+			int searchVal = minmaxSearch(newFen, depth + 1, limit, isMaxTurn ^ true);
+			if (isMaxTurn) {
+				if (val < searchVal) {
+					if (depth == 0) {
+						nextOptimalMove = move;
+					}
+					val = searchVal;
 
-	for (auto move : chessboard->nextPossibleMoves) {
-		int newX = move.newX;
-		int newY = move.newY;
-		char promotedTo = move.chesspiece3 == NULL ? ' ' : (char)move.chesspiece3->getType();
-		move.chesspiece1->move(newX, newY, promotedTo);
-		if (chessboard->hasPiece(chessboard->isWhitesTurn ? BlackKingType : WhiteKingType) == false)
-			return transposition_table[fen] = (INT_MAX - 2) * (isMaxTurn ? 1 : -1);
-		std::string newFen = chessboard->toFen();
-		move.chesspiece1->undo();
-		int searchVal = minmaxSearch(newFen, depth + 1, limit, isMaxTurn ^ true);
-		if (isMaxTurn) {
-			if (val < searchVal) {
-				if (depth == 0) {
-					nextOptimalMove = move;
 				}
-				val = searchVal;
-
+			}
+			else {
+				if (val > searchVal) {
+					if (depth == 0) {
+						nextOptimalMove = move;
+					}
+					val = searchVal;
+				}
 			}
 		}
-		else {
-			if (val > searchVal) {
-				if (depth == 0) {
-					nextOptimalMove = move;
-				}
-				val = searchVal;
-			}
-		}
 	}
-
+	if (depth == 0)
+		this->chessboard = currCB;
+	else
+		delete currCB;
 	return transposition_table[fen] = val;
 }
 
@@ -228,50 +236,60 @@ int ChessEngine::alphabetaSearch(std::string fen, int depth, int limit, int alph
 		return transposition_table[fen];
 	fenMap[fen] = true;
 
-	ChessBoard* chessboard = new ChessBoard(fen);
+	ChessBoard* currCB = new ChessBoard(fen);
 	nodeCount++;
+	int val;
 	if (depth == limit) {
-		int val = evaluateChessboard(chessboard);
-		return transposition_table[fen] = val;
+		val = evaluateChessboard(currCB);
+	}
+	else {
+		currCB->genNextPossibleMoves();
+		val = (INT_MAX - 2) * (isMaxTurn ? -1 : 1);
+
+		for (auto move : currCB->nextPossibleMoves) {
+			int newX = move.newX;
+			int newY = move.newY;
+			char promotedTo = move.chesspiece3 == NULL ? ' ' : (char)move.chesspiece3->getType();
+			currCB->move(newX, newY, promotedTo);
+			if (currCB->hasPiece(currCB->isWhitesTurn ? BlackKingType : WhiteKingType) == false) {
+				val = (INT_MAX - 2) * (isMaxTurn ? 1 : -1);
+				break;
+			}
+				
+			std::string newFen = currCB->toFen();
+			currCB->undo();
+			int searchVal = alphabetaSearch(newFen, depth + 1, limit, alpha, beta, isMaxTurn ^ true);
+			if (isMaxTurn) {
+				if (val < searchVal) {
+					if (depth == 0) {
+						nextOptimalMove = move;
+					}
+					val = searchVal;
+					alpha = searchVal;
+				}
+				if (beta <= alpha)
+					break;
+			}
+			else {
+				if (val > searchVal) {
+					if (depth == 0) {
+						nextOptimalMove = move;
+					}
+					val = searchVal;
+					beta = searchVal;
+				}
+				if (beta <= alpha)
+					break;
+			}
+		}
+
 	}
 
 
-	chessboard->genNextPossibleMoves();
-	int val = (INT_MAX - 2) * (isMaxTurn ? -1 : 1);
-
-	for (auto move : chessboard->nextPossibleMoves) {
-		int newX = move.newX;
-		int newY = move.newY;
-		char promotedTo = move.chesspiece3 == NULL ? ' ' : (char)move.chesspiece3->getType();
-		move.chesspiece1->move(newX, newY, promotedTo);
-		if (chessboard->hasPiece(chessboard->isWhitesTurn ? BlackKingType : WhiteKingType) == false)
-			return transposition_table[fen] = (INT_MAX - 2) * (isMaxTurn ? 1 : -1);
-		std::string newFen = chessboard->toFen();
-		move.chesspiece1->undo();
-		int searchVal = alphabetaSearch(newFen, depth + 1, limit, alpha, beta, isMaxTurn ^ true);
-		if (isMaxTurn) {
-			if (val < searchVal) {
-				if (depth == 0) {
-					nextOptimalMove = move;
-				}
-				val = searchVal;
-				alpha = searchVal;
-			}
-			if (beta <= alpha)
-				break;
-		}
-		else {
-			if (val > searchVal) {
-				if (depth == 0) {
-					nextOptimalMove = move;
-				}
-				val = searchVal;
-				beta = searchVal;
-			}
-			if (beta <= alpha)
-				break;
-		}
-	}
+	if (depth == 0)
+		this->chessboard = currCB;
+	else
+		delete currCB;
 
 	return transposition_table[fen] = val;
 }

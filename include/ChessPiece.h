@@ -61,22 +61,14 @@ public:
 	int id = 0;
 	int x = -1, y = -1, numOfMoves = 0;
 	ChessBoard* chessboard;
-	std::vector< ChessPieceMove> nextPossibleMoves;
 	ChessPiece(int x, int y, bool isWhite);
 	~ChessPiece();
 	void init(std::vector<int>& directionx, std::vector<int>& directiony, int range);
 	void generatePossibleMoves();
-	void validatePossibleMoves();
-	void move(int x, int y, char promotedTo);
-	void undo();
-	ChessPieceMove isValidMove(int x, int y, char promotedTo);
-	void postMoveProcess(ChessPieceMove move);
-	void postUndoProcess(ChessPieceMove move);
 	void setType(ChessPieceType type);
 	ChessPieceType getType();
 	bool getIsWhite();
 	void setChessBoard(ChessBoard* chessboard);
-	std::vector< ChessPieceMove>& getNextPossibleMoves();
 };
 
 class Pawn : public ChessPiece {

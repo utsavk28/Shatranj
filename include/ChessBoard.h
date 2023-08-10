@@ -8,8 +8,11 @@
 class ChessPiece;
 struct ChessPieceMove;
 
+
+
 class ChessBoard {
 public:
+	int id = 0;
 	bool isWhitesTurn = true;
 	int halfMoveCounts = 0;
 	int fullMoveCounts = 0;
@@ -22,6 +25,8 @@ public:
 	~ChessBoard();
 	ChessBoard(std::string &fenn);
 	void init(std::vector<std::vector<ChessPieceType>> chessTypeBoard);
+	ChessPieceMove isValidMove(int x, int y, char promotedTo);
+	void validatePossibleMoves();
 	bool isKingVulnerable();
 	bool isKingVulnerable(bool isWhitesTurn);
 	bool isSquareInDanger(int x, int y, bool isWhite);
@@ -29,6 +34,11 @@ public:
 	void setupCastling(std::string& s);
 	void setupEnPassant(std::string& s);	
 	void genNextPossibleMoves();
+	void move(int x, int y, char promotedTo);
+	void postMoveProcess(ChessPieceMove move);
+	void undo();
+	void postUndoProcess(ChessPieceMove move);
+	void cleanUp(ChessPieceMove move);
 	int getNextPossibleMovesCount();
 	bool isInsideChessBoard(int x, int y);
 	std::string toFen();
