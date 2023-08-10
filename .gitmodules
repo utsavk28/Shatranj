@@ -1,0 +1,14 @@
+[submodule "extern/SDL"]
+	path = extern/SDL
+	url = https://github.com/libsdl-org/SDL.git
+	branch = SDL2
+[submodule "extern/SDL_image"]
+	path = extern/SDL_image
+	url = https://github.com/libsdl-org/SDL_image.git
+	branch = SDL2
+[submodule "extern/Catch2"]
+	path = extern/Catch2
+	url = https://github.com/catchorg/Catch2.git
+[submodule "extern/hat-trie"]
+	path = extern/hat-trie
+	url = https://github.com/Tessil/hat-trie.git
