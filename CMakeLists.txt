@@ -12,7 +12,9 @@ endif()
 project ("ChessEngine")
 
 # Add source to this project's executable.
-
+#add_executable (${PROJECT_NAME} 
+#	"debug.cpp"
+#)
 
 add_executable (${PROJECT_NAME} 
 	"main.cpp"

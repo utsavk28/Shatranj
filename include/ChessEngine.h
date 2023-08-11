@@ -6,7 +6,7 @@
 
 
 class ChessEngine {
-private :
+private:
 	tsl::htrie_map<char, int> transposition_table;
 	tsl::htrie_map<char, int> fenMap;
 public:
@@ -15,7 +15,8 @@ public:
 	ChessEngine();
 	~ChessEngine();
 	ChessEngine(std::string& fen);
-	void genNextPossibleMoves();
+	void genNextPossibleMoves(); 
+	void copy(ChessPieceMove move);
 	int getNextPossibleMovesCount();
 	void computeNextOptimalMove();
 	int minmaxSearch(std::string fen, int depth, int limit, bool isMaxTurn);
@@ -23,5 +24,5 @@ public:
 	std::vector<std::pair<std::string, int>> getAllChessboardWithLegalMoveCount(std::string fen, int depth, bool flag);
 	int evaluateChessboard(ChessBoard* chessboard);
 	int countNodes(std::string fen, int depth);
-	void move(int oldX, int oldY, int newX, int newY,char promotedTo);
+	void move(int oldX, int oldY, int newX, int newY, char promotedTo);
 };

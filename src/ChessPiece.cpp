@@ -52,13 +52,65 @@ void ChessPiece::generatePossibleMoves() {
 
 }
 
-
 ChessPiece::~ChessPiece()
 {
+	//std::cout << "ChessPiece " << (char)type << " " << id << std::endl;
 	chessboard = NULL;
 	directionx.clear();
 	directiony.clear();
-	//std::cout << "ChessPiece " << (char)type << " " << id << std::endl;
+}
+
+
+void deleteChessPiece(ChessPiece* cp) {
+	Pawn* pawn;
+	Rook* rook;
+	Knight* knight;
+	Bishop* bishop;
+	Queen* queen;
+	King* king;
+	ChessPieceType cpt = cp->getType();
+	//std::cout << (char)cpt << std::endl;
+	switch (cpt)
+	{
+	case WhitePawnType:
+	case BlackPawnType:
+		pawn = static_cast<Pawn*>(cp);
+		//std::cout << "Pawn" << std::endl;
+		delete pawn;
+		break;
+	case WhiteRookType:
+	case BlackRookType:
+		rook = static_cast<Rook*>(cp);
+		//std::cout << "Rook" << std::endl;
+		delete rook;
+		break;
+	case WhiteBishopType:
+	case BlackBishopType:
+		bishop = static_cast<Bishop*>(cp);
+		//std::cout << "Bishop" << std::endl;
+		delete bishop;
+		break;
+	case WhiteKnightType:
+	case BlackKnightType:
+		knight = static_cast<Knight*>(cp);
+		//std::cout << "Knight" << std::endl;
+		delete knight;
+		break;
+	case WhiteQueenType:
+	case BlackQueenType:
+		queen = static_cast<Queen*>(cp);
+		//std::cout << "Queen" << std::endl;
+		delete queen;
+		break;
+	case WhiteKingType:
+	case BlackKingType:
+		king = static_cast<King*>(cp);
+		//std::cout << "King" << std::endl;
+		delete king;
+		break;
+	default:
+		delete cp;
+	}
 }
 
 
@@ -89,6 +141,12 @@ Pawn::Pawn(int x, int y, bool isWhite) :ChessPiece(x, y, isWhite) {
 	numOfMoves = y == (isWhite ? 6 : 1) ? 0 : 1;
 }
 
+Pawn::~Pawn()
+{
+	//std::cout << "Pawn Destructor" << std::endl;
+	attackDirectionX.clear();
+	attackDirectionY.clear();
+}
 
 void Pawn::generatePossibleMoves()
 {
@@ -207,6 +265,12 @@ Rook::Rook(int x, int y, bool isWhite) :ChessPiece(x, y, isWhite) {
 		setType(BlackRookType);
 }
 
+Rook::~Rook()
+{
+	//std::cout << "Rook Destructor " << std::endl;
+	directionx.clear();
+	directiony.clear();
+}
 
 
 Knight::Knight(int x, int y, bool isWhite) :ChessPiece(x, y, isWhite) {
@@ -217,6 +281,14 @@ Knight::Knight(int x, int y, bool isWhite) :ChessPiece(x, y, isWhite) {
 		setType(BlackKnightType);
 }
 
+Knight::~Knight()
+{
+	//std::cout << "Knight Destructor " << std::endl;
+	directionx.clear();
+	directiony.clear();
+}
+
+
 
 Bishop::Bishop(int x, int y, bool isWhite) :ChessPiece(x, y, isWhite) {
 	init(directionx, directiony, range);
@@ -226,6 +298,12 @@ Bishop::Bishop(int x, int y, bool isWhite) :ChessPiece(x, y, isWhite) {
 		setType(BlackBishopType);
 }
 
+Bishop::~Bishop()
+{
+	//std::cout << "Bishop Destructor " << std::endl;
+	directionx.clear();
+	directiony.clear();
+}
 
 
 Queen::Queen(int x, int y, bool isWhite) :ChessPiece(x, y, isWhite) {
@@ -237,6 +315,14 @@ Queen::Queen(int x, int y, bool isWhite) :ChessPiece(x, y, isWhite) {
 	//init(directionx, directiony, range, chessboard);
 }
 
+Queen::~Queen()
+{
+	//std::cout << "Queen Destructor " << std::endl;
+	directionx.clear();
+	directiony.clear();
+}
+
+
 
 King::King(int x, int y, bool isWhite) :ChessPiece(x, y, isWhite) {
 	init(directionx, directiony, range);
@@ -245,6 +331,14 @@ King::King(int x, int y, bool isWhite) :ChessPiece(x, y, isWhite) {
 	else
 		setType(BlackKingType);
 }
+
+King::~King()
+{
+	//std::cout << "King Destructor " << std::endl;
+	directionx.clear();
+	directiony.clear();
+}
+
 
 
 bool King::isInDanger()

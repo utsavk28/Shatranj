@@ -71,6 +71,8 @@ public:
 	void setChessBoard(ChessBoard* chessboard);
 };
 
+void deleteChessPiece(ChessPiece* cp);
+
 class Pawn : public ChessPiece {
 private:
 	std::vector<int> directionx{}, attackDirectionX{ -1,1 };
@@ -81,6 +83,7 @@ public:
 	bool canPlay2Step = true;
 	bool prevMoveWas2Step = false;
 	Pawn(int x, int y, bool isWhite);
+	~Pawn();
 	void generatePossibleMoves();
 	bool getPrevMoveWas2Step();
 	void setPrevMoveWas2Step(bool val);
@@ -96,6 +99,7 @@ private:
 public:
 	bool hasMoved = false;
 	Rook(int x, int y, bool isWhite);
+	~Rook();
 	//void generatePossibleMoves();
 };
 
@@ -107,6 +111,7 @@ private:
 
 public:
 	Knight(int x, int y, bool isWhite);
+	~Knight();
 	//void generatePossibleMoves();
 };
 
@@ -118,6 +123,7 @@ private:
 
 public:
 	Bishop(int x, int y, bool isWhite);
+	~Bishop();
 	//void generatePossibleMoves();
 };
 
@@ -129,6 +135,7 @@ private:
 
 public:
 	Queen(int x, int y, bool isWhite);
+	~Queen();
 	//void generatePossibleMoves();
 };
 
@@ -140,6 +147,7 @@ private:
 public:
 	bool hasMoved = false;
 	King(int x, int y, bool isWhite);
+	~King();
 	void generatePossibleMoves();
 	bool isInDanger();
 };

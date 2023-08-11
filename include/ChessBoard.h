@@ -18,6 +18,8 @@ public:
 	int fullMoveCounts = 0;
 	int enPassantX = -1, enPassantY = -1;
 	std::vector<std::vector<ChessPiece*>> chessboard;
+	std::vector<ChessPiece*> removedPawns;
+	std::map<int, ChessPiece*> allChessPieces;
 	std::map<ChessPieceType, std::vector<ChessPiece*>> chesspieceMap;
 	std::vector<ChessPieceMove> prevMoves,nextPossibleMoves;
 

@@ -10,7 +10,7 @@ int getAllChessboardinDepth(std::string fen, int depth) {
 
 
 int main(int argc, char* argv[]) {
-
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	std::string fen1 = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; // 20
 	std::string fen2 = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 0"; // 48
 	std::string fen3 = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 0"; // 14
@@ -19,6 +19,7 @@ int main(int argc, char* argv[]) {
 	std::string fen6 = "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10 "; // 46
 	std::string temp = "rnBq1k1r/pp2bppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R b KQ - 0 0";
 	ChessEngine chessEngine = ChessEngine(fen5);
+	//std::cout << chessEngine.countNodes(fen5, 3) << std::endl;
 	/*chessEngine.genNextPossibleMoves();
 	for (auto it : chessEngine.chessboard->nextPossibleMoves) {
 		std::cout << (char)it.chesspiece1->getType() << " " << it.oldX << " " << it.oldY << " " << it.newX << " " << it.newY << " ";
@@ -33,6 +34,6 @@ int main(int argc, char* argv[]) {
 		std::cout << chessEngine.nextOptimalMove.newX << " " << chessEngine.nextOptimalMove.newY << std::endl;
 	}
 	visualize::visualizeChessBoard(chessEngine.chessboard);
-
+	//system("pause");
 	return 0;
 }
