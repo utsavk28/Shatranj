@@ -2,7 +2,7 @@
 
 ## Todo
 - [x] Baseline
-- [ ] Handle Memory Leak
+- [x] Handle Memory Leak
 - [ ] Magic Bitboard
 - [ ] Improved Evaluation Function
 - [ ] Implement Position Heuristic
