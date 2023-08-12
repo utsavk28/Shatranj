@@ -15,7 +15,6 @@ void ChessPiece::init(std::vector<int>& directionx, std::vector<int>& directiony
 	this->directionx = directionx;
 	this->directiony = directiony;
 	this->range = range;
-	//std::cout << this->range << std::endl;
 }
 
 void ChessPiece::setType(ChessPieceType type)
@@ -26,7 +25,6 @@ void ChessPiece::setType(ChessPieceType type)
 
 void ChessPiece::generatePossibleMoves() {
 	int i, j, n = (int)directionx.size();
-
 	for (i = 0; i < n; i++) {
 		int newX = x;
 		int newY = y;
@@ -69,43 +67,37 @@ void deleteChessPiece(ChessPiece* cp) {
 	Queen* queen;
 	King* king;
 	ChessPieceType cpt = cp->getType();
-	//std::cout << (char)cpt << std::endl;
+
 	switch (cpt)
 	{
 	case WhitePawnType:
 	case BlackPawnType:
 		pawn = static_cast<Pawn*>(cp);
-		//std::cout << "Pawn" << std::endl;
 		delete pawn;
 		break;
 	case WhiteRookType:
 	case BlackRookType:
 		rook = static_cast<Rook*>(cp);
-		//std::cout << "Rook" << std::endl;
 		delete rook;
 		break;
 	case WhiteBishopType:
 	case BlackBishopType:
 		bishop = static_cast<Bishop*>(cp);
-		//std::cout << "Bishop" << std::endl;
 		delete bishop;
 		break;
 	case WhiteKnightType:
 	case BlackKnightType:
 		knight = static_cast<Knight*>(cp);
-		//std::cout << "Knight" << std::endl;
 		delete knight;
 		break;
 	case WhiteQueenType:
 	case BlackQueenType:
 		queen = static_cast<Queen*>(cp);
-		//std::cout << "Queen" << std::endl;
 		delete queen;
 		break;
 	case WhiteKingType:
 	case BlackKingType:
 		king = static_cast<King*>(cp);
-		//std::cout << "King" << std::endl;
 		delete king;
 		break;
 	default:
@@ -226,6 +218,7 @@ void Pawn::pawnPromotion(ChessPiece* cp1, ChessPiece* cp2, int newX, int newY, C
 			ChessPieceMove chesspieceMove = ChessPieceMove(cp1, cp2, newX, newY, x, y, cpmt);
 			chesspieceMove.isPromoted = true;
 			Rook* rook = new Rook(newX, newY, isWhite);
+			rook->chessboard = chessboard;
 			rook->hasMoved = true;
 			rook->numOfMoves = 1;
 			chesspieceMove.chesspiece3 = rook;
@@ -234,19 +227,25 @@ void Pawn::pawnPromotion(ChessPiece* cp1, ChessPiece* cp2, int newX, int newY, C
 		{
 			ChessPieceMove chesspieceMove = ChessPieceMove(cp1, cp2, newX, newY, x, y, cpmt);
 			chesspieceMove.isPromoted = true;
-			chesspieceMove.chesspiece3 = new Knight(newX, newY, isWhite);
+			Knight* knight = new Knight(newX, newY, isWhite);
+			knight->chessboard = chessboard;
+			chesspieceMove.chesspiece3 = knight;
 			chessboard->nextPossibleMoves.push_back(chesspieceMove);
 		}
 		{
 			ChessPieceMove chesspieceMove = ChessPieceMove(cp1, cp2, newX, newY, x, y, cpmt);
 			chesspieceMove.isPromoted = true;
-			chesspieceMove.chesspiece3 = new Bishop(newX, newY, isWhite);
+			Bishop *bishop = new Bishop(newX, newY, isWhite);
+			bishop->chessboard = chessboard;
+			chesspieceMove.chesspiece3 = bishop;
 			chessboard->nextPossibleMoves.push_back(chesspieceMove);
 		}
 		{
 			ChessPieceMove chesspieceMove = ChessPieceMove(cp1, cp2, newX, newY, x, y, cpmt);
 			chesspieceMove.isPromoted = true;
-			chesspieceMove.chesspiece3 = new Queen(newX, newY, isWhite);
+			Queen *queen = new Queen(newX, newY, isWhite);
+			queen->chessboard = chessboard;
+			chesspieceMove.chesspiece3 = queen;
 			chessboard->nextPossibleMoves.push_back(chesspieceMove);
 		}
 	}
@@ -312,7 +311,6 @@ Queen::Queen(int x, int y, bool isWhite) :ChessPiece(x, y, isWhite) {
 		setType(WhiteQueenType);
 	else
 		setType(BlackQueenType);
-	//init(directionx, directiony, range, chessboard);
 }
 
 Queen::~Queen()

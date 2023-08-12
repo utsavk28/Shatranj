@@ -26,7 +26,6 @@ std::vector<std::string> split(std::string& s, char c) {
 
 ChessBoard::ChessBoard() {
 	id = chessboardId++;
-	//std::cout << "Chessboard " << id << std::endl;
 	chessboard.resize(8, std::vector<ChessPiece*>(8, NULL));
 	std::vector<std::vector<ChessPieceType>> chessTypeBoard = {
 		{BlackRookType,BlackKnightType,BlackBishopType,BlackQueenType,BlackKingType,BlackBishopType,BlackKnightType,BlackRookType},
@@ -45,7 +44,6 @@ ChessBoard::ChessBoard() {
 
 ChessBoard::ChessBoard(std::string& fen) {
 	id = chessboardId++;
-	//std::cout << "Chessboard " << id << std::endl;
 	chessboard.resize(8, std::vector<ChessPiece*>(8, NULL));
 	std::vector<std::vector<ChessPieceType>> chessTypeBoard(8, std::vector<ChessPieceType>(8, EmptyType));
 	std::vector<std::string> fen_arr = split(fen, ' ');
@@ -79,17 +77,7 @@ ChessBoard::~ChessBoard()
 	for (auto& it : nextPossibleMoves) {
 		cleanUp(it);
 	}
-	/*for (auto& it : chesspieceMap) {
-		for (auto& it2 : it.second) {
-			delete it2;
-		}
-	}
-	for (auto &it : removedPawns) {
-		delete it;
-	}*/	
 }
-
-
 
 
 void ChessBoard::init(std::vector<std::vector<ChessPieceType>> chessTypeBoard) {
@@ -150,27 +138,40 @@ void ChessBoard::init(std::vector<std::vector<ChessPieceType>> chessTypeBoard) {
 }
 
 
-ChessPieceMove ChessBoard::isValidMove(int x, int y, char promotedTo)
+ChessPieceMove ChessBoard::isValidMove(int oldX, int oldY, int newX, int newY, char promotedTo)
 {
-	if (!isInsideChessBoard(x, y))
+	if (!isInsideChessBoard(newX, newY) || !isInsideChessBoard(oldX, oldY))
 		return ChessPieceMove();
-	for (auto& it : nextPossibleMoves)
-		if (it.newX == x && it.newY == y) {
-			if (promotedTo == ' ' || (it.chesspiece3 != NULL && promotedTo == (char)it.chesspiece3->getType()))
+	for (auto& it : nextPossibleMoves) {
+		if (it.newX == newX && it.newY == newY && it.oldX == oldX && it.oldY == oldY) {
+			if (promotedTo == ' ' || (it.chesspiece3 != NULL && promotedTo == (char)it.chesspiece3->getType())) {
 				return it;
+			}
 		}
+	}
 	return ChessPieceMove();
 }
 
 void ChessBoard::cleanUp(ChessPieceMove move) {
 	ChessPiece* temp = move.chesspiece3;
-	if (temp)
+	if (temp) {
+		int sz = prevMoves.size();
+		if (sz >= 2) {
+			if (temp->id == prevMoves[sz-2].chesspiece3->id)
+				return;
+		}
+		if(sz >= 1) {
+			if (temp->id == prevMoves[sz-1].chesspiece3->id)
+				return;
+		}
 		deleteChessPiece(temp);
+	}
+
 }
 
-void ChessBoard::move(int x, int y, char promotedTo = ' ')
+void ChessBoard::move(int oldX, int oldY, int newX, int newY, char promotedTo = ' ')
 {
-	ChessPieceMove chesspieceMove = isValidMove(x, y, promotedTo);
+	ChessPieceMove chesspieceMove = isValidMove(oldX, oldY, newX, newY, promotedTo);
 	if (chesspieceMove.chesspiece1 != NULL) {
 		prevMoves.push_back(chesspieceMove);
 		int oldX = chesspieceMove.oldX;
@@ -237,6 +238,9 @@ void ChessBoard::move(int x, int y, char promotedTo = ' ')
 
 		postMoveProcess(chesspieceMove);
 		isWhitesTurn ^= true;
+	}
+	else {
+		std::cout << "Execute nhi huwa" << std::endl;
 	}
 }
 
@@ -445,7 +449,7 @@ void ChessBoard::validatePossibleMoves() {
 
 	for (auto& nextMove : nextPossibleMoves) {
 		char promotedTo = nextMove.chesspiece3 == NULL ? ' ' : (char)nextMove.chesspiece3->getType();
-		move(nextMove.newX, nextMove.newY, promotedTo);
+		move(nextMove.oldX, nextMove.oldY, nextMove.newX, nextMove.newY, promotedTo);
 		for (int i = 0; i < 8; i++) {
 			for (int j = 0; j < 8; j++) {
 				if (chessboard[i][j])
@@ -545,10 +549,6 @@ void ChessBoard::genNextPossibleMoves()
 		}
 	}
 	validatePossibleMoves();
-	//count += (int)chessboard[i][j]->nextPossibleMoves.size();
-	//for (auto& nextMove : chessboard[i][j]->nextPossibleMoves) {
-	//	nextPossibleMoves.push_back(nextMove);
-	//}
 }
 
 int ChessBoard::getNextPossibleMovesCount()

@@ -27,7 +27,7 @@ public:
 	~ChessBoard();
 	ChessBoard(std::string &fenn);
 	void init(std::vector<std::vector<ChessPieceType>> chessTypeBoard);
-	ChessPieceMove isValidMove(int x, int y, char promotedTo);
+	ChessPieceMove isValidMove(int oldX,int oldY,int newX,int newY, char promotedTo);
 	void validatePossibleMoves();
 	bool isKingVulnerable();
 	bool isKingVulnerable(bool isWhitesTurn);
@@ -36,7 +36,7 @@ public:
 	void setupCastling(std::string& s);
 	void setupEnPassant(std::string& s);	
 	void genNextPossibleMoves();
-	void move(int x, int y, char promotedTo);
+	void move(int oldX,int oldY,int newX,int newY, char promotedTo);
 	void postMoveProcess(ChessPieceMove move);
 	void undo();
 	void postUndoProcess(ChessPieceMove move);
