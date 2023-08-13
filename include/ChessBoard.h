@@ -13,6 +13,8 @@ struct ChessPieceMove;
 class ChessBoard {
 public:
 	int id = 0;
+	int whitePieceCount = 0;
+	int blackPieceCount = 0;
 	bool isWhitesTurn = true;
 	int halfMoveCounts = 0;
 	int fullMoveCounts = 0;

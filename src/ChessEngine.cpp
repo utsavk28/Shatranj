@@ -33,72 +33,69 @@ int ChessEngine::getNextPossibleMovesCount() {
 	return chessboard->getNextPossibleMovesCount();
 }
 
+
+
 int ChessEngine::evaluateChessboard(ChessBoard* chessboard)
 {
 	if (chessboard->chesspieceMap[WhiteKingType].size() == 0)
 		return chessboard->isWhitesTurn;
 
-	const int kingWt = 2000;
-	const int queenWt = 90;
-	const int rookWt = 50;
-	const int bishopWt = 30;
-	const int knightWt = 30;
-	const int pawnWt = 10;
-	const int pawnWt2 = 5; // Passed, Isolated & Skipped Pawn
-	const int mobilityWt = 1; // Mobility 
-
-	int materialScore = 0;
+	float materialScore = 0;
 	int mobilityScore = 0;
 	int i, j;
+
 
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
 			if (chessboard->chessboard[i][j] != NULL) {
+				int x = j;
+				int y = chessboard->chessboard[i][j]->getIsWhite() ? i : 7 - i;
+				int fromStart = chessboard->chessboard[i][j]->getIsWhite() ? chessboard->blackPieceCount : chessboard->whitePieceCount;
+				fromStart = std::min(std::max(fromStart - 3, 0), 10);
+				int toEnd = 10 - fromStart;
 				switch (chessboard->chessboard[i][j]->getType())
 				{
 				case WhiteKingType:
-					materialScore += kingWt;
+					materialScore += kingWt * (fromStart * posKingStartWt[y][x] - toEnd * posKingEndWt[y][x]) / 10.0f;
 					break;
 				case BlackKingType:
-					materialScore -= kingWt;
+					materialScore -= kingWt * (fromStart * posKingStartWt[y][x] - toEnd * posKingEndWt[y][x]) / 10.0f;
 					break;
 
 				case WhiteQueenType:
-					materialScore += queenWt;
+					materialScore += queenWt * (fromStart * posQueenStartWt[y][x] - toEnd * posQueenEndWt[y][x]) / 10.0f;
 					break;
 				case BlackQueenType:
-					materialScore -= queenWt;
+					materialScore -= queenWt * (fromStart * posQueenStartWt[y][x] - toEnd * posQueenEndWt[y][x]) / 10.0f;
 					break;
 
 				case WhiteRookType:
-					materialScore += rookWt;
+					materialScore += rookWt * (fromStart * posRookStartWt[y][x] - toEnd * posRookEndWt[y][x]) / 10.0f;
 					break;
 				case BlackRookType:
-					materialScore -= rookWt;
+					materialScore -= rookWt * (fromStart * posRookStartWt[y][x] - toEnd * posRookEndWt[y][x]) / 10.0f;
 					break;
 
 				case WhiteBishopType:
-					materialScore += bishopWt;
+					materialScore += bishopWt * (fromStart * posBishopStartWt[y][x] - toEnd * posBishopEndWt[y][x]) / 10.0f;
 					break;
 				case BlackBishopType:
-					materialScore -= bishopWt;
+					materialScore -= bishopWt * (fromStart * posBishopStartWt[y][x] - toEnd * posBishopEndWt[y][x]) / 10.0f;
 					break;
 
 				case WhiteKnightType:
-					materialScore += knightWt;
+					materialScore += knightWt * (fromStart * posKnightStartWt[y][x] - toEnd * posKnightEndWt[y][x]) / 10.0f;
 					break;
 				case BlackKnightType:
-					materialScore -= knightWt;
+					materialScore -= knightWt * (fromStart * posKnightStartWt[y][x] - toEnd * posKnightEndWt[y][x]) / 10.0f;
 					break;
 
 				case WhitePawnType:
-					materialScore += pawnWt;
+					materialScore += pawnWt * (fromStart * posPawnStartWt[y][x] - toEnd * posPawnEndWt[y][x]) / 10.0f;
 					break;
 				case BlackPawnType:
-					materialScore -= pawnWt;
+					materialScore -= pawnWt * (fromStart * posPawnStartWt[y][x] - toEnd * posPawnEndWt[y][x]) / 10.0f;
 					break;
-
-
 				default:
 					break;
 				}
@@ -106,6 +103,23 @@ int ChessEngine::evaluateChessboard(ChessBoard* chessboard)
 		}
 	}
 
+	bool isWhitesTurn = chessboard->isWhitesTurn;
+
+	// white
+	chessboard->isWhitesTurn = true;
+	chessboard->genNextPossibleMoves();
+	mobilityScore += (int)chessboard->nextPossibleMoves.size();
+
+	// black
+	chessboard->isWhitesTurn = false;
+	chessboard->genNextPossibleMoves();
+	mobilityScore -= (int)chessboard->nextPossibleMoves.size();
+
+	// reset
+	chessboard->isWhitesTurn = isWhitesTurn;
+	chessboard->genNextPossibleMoves();
+
+	mobilityScore *= mobilityWt;
 
 	int score = (materialScore + mobilityScore) * (chessboard->isWhitesTurn ? 1 : -1);
 
@@ -184,7 +198,7 @@ void ChessEngine::computeNextOptimalMove()
 	std::string fen = chessboard->toFen();
 	chessboard->genNextPossibleMoves();
 	//minmaxSearch(fen, 0, 2, true);
-	alphabetaSearch(fen, 0, 3, -inf, inf, true);
+	alphabetaSearch(fen, 0, 4, -inf, inf, true);
 	std::cout << nodeCount << std::endl;
 	transposition_table.clear();
 	fenMap.clear();
@@ -205,6 +219,8 @@ void ChessEngine::copy(ChessPieceMove move) {
 	}
 }
 
+
+
 int ChessEngine::minmaxSearch(std::string fen, int depth, int limit, bool isMaxTurn)
 {
 	if (fenMap[fen])
@@ -220,7 +236,12 @@ int ChessEngine::minmaxSearch(std::string fen, int depth, int limit, bool isMaxT
 	else {
 		currCB->genNextPossibleMoves();
 		val = (INT_MAX - 2) * (isMaxTurn ? -1 : 1);
-
+		if (currCB->nextPossibleMoves.size() == 0) {
+			if (currCB->isKingVulnerable())
+				val *= -1;
+			else
+				val = 0;
+		}
 		for (auto move : currCB->nextPossibleMoves) {
 			int oldX = move.oldX;
 			int oldY = move.oldY;
@@ -228,10 +249,6 @@ int ChessEngine::minmaxSearch(std::string fen, int depth, int limit, bool isMaxT
 			int newY = move.newY;
 			char promotedTo = move.chesspiece3 == NULL ? ' ' : (char)move.chesspiece3->getType();
 			currCB->move(oldX, oldY, newX, newY, promotedTo);
-			if (currCB->hasPiece(currCB->isWhitesTurn ? BlackKingType : WhiteKingType) == false) {
-				val = (INT_MAX - 2) * (isMaxTurn ? 1 : -1);
-				break;
-			}
 			std::string newFen = currCB->toFen();
 			currCB->undo();
 			int searchVal = minmaxSearch(newFen, depth + 1, limit, isMaxTurn ^ true);
@@ -276,7 +293,12 @@ int ChessEngine::alphabetaSearch(std::string fen, int depth, int limit, int alph
 	else {
 		currCB->genNextPossibleMoves();
 		val = (INT_MAX - 2) * (isMaxTurn ? -1 : 1);
-
+		if (currCB->nextPossibleMoves.size() == 0) {
+			if (currCB->isKingVulnerable())
+				val *= -1;
+			else
+				val = 0;
+		}
 		for (auto move : currCB->nextPossibleMoves) {
 			int oldX = move.oldX;
 			int oldY = move.oldY;
@@ -284,10 +306,6 @@ int ChessEngine::alphabetaSearch(std::string fen, int depth, int limit, int alph
 			int newY = move.newY;
 			char promotedTo = move.chesspiece3 == NULL ? ' ' : (char)move.chesspiece3->getType();
 			currCB->move(oldX, oldY, newX, newY, promotedTo);
-			if (currCB->hasPiece(currCB->isWhitesTurn ? BlackKingType : WhiteKingType) == false) {
-				val = (INT_MAX - 2) * (isMaxTurn ? 1 : -1);
-				break;
-			}
 
 			std::string newFen = currCB->toFen();
 			currCB->undo();

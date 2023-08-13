@@ -18,49 +18,23 @@ int main(int argc, char* argv[]) {
 	std::string fen5 = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8"; // 44
 	std::string fen6 = "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10 "; // 46
 	std::string temp = "rnBq1k1r/pp2bppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R b KQ - 0 0";
-	ChessEngine chessEngine = ChessEngine(fen5);
-	//std::cout << chessEngine.countNodes(fen5, 3) << std::endl;
-	/*chessEngine.genNextPossibleMoves();
-	for (auto it : chessEngine.chessboard->nextPossibleMoves) {
-		std::cout << (char)it.chesspiece1->getType() << " " << it.oldX << " " << it.oldY << " " << it.newX << " " << it.newY << " ";
-		if (it.chesspiece3)
-			std::cout << "@ " << (char)it.chesspiece3->getType();
-			std::cout << std::endl;
-	}*/
-	ChessPieceMove move;
-	//visualize::visualizeChessBoard(chessEngine.chessboard);
-	//while (true) {
-	for (int i = 0; i < 10; i++) {
-		/*chessEngine.genNextPossibleMoves();
-		for (auto it : chessEngine.chessboard->nextPossibleMoves) {
-			std::cout << it.oldX << it.oldY << it.newX << it.newY << (it.chesspiece3 == NULL ? ' ' : (char)it.chesspiece3->getType()) << std::endl;
-		}
-		int oldX, oldY, newX, newY;
-		char promotedTo;
-		std::cin >> oldX >> oldY >> newX >> newY >> promotedTo;
-		if (promotedTo == 'x')
-			promotedTo = ' ';
-		std::cout << oldX << oldY << newX << newY << promotedTo << "|" << std::endl;
-		if (oldX == -1)
-			break;*/
-		chessEngine.computeNextOptimalMove();
-		move = chessEngine.nextOptimalMove;
-		/*std::cout << chessEngine.chessboard->nextPossibleMoves.size() << std::endl;
-		std::cout << "Old Pos => ";
-		std::cout << move.oldX << " " << move.oldY << " " << move.newX << " " << move.newY << " " << (move.chesspiece3 == NULL ? ' ' : (char)move.chesspiece3->getType()) << std::endl;
-		for (auto& it : chessEngine.chessboard->nextPossibleMoves) {
-			std::cout << "Next Pos =>";
-			std::cout << it.oldX << " " << it.oldY << " " << it.newX << " " << it.newY << " " << (it.chesspiece3 == NULL ? ' ' : (char)it.chesspiece3->getType()) << std::endl;
-		}*/
-		chessEngine.move(move.oldX, move.oldY, move.newX, move.newY, (move.chesspiece3 == NULL ? ' ' : (char)move.chesspiece3->getType()));
-		//chessEngine.move(oldX, oldY, newX, newY, promotedTo);
-		if (chessEngine.nextOptimalMove.chesspiece1 != NULL) {
-			std::cout << (char)chessEngine.nextOptimalMove.chesspiece1->getType() << std::endl;
-			std::cout << chessEngine.nextOptimalMove.oldX << " " << chessEngine.nextOptimalMove.oldY << std::endl;
-			std::cout << chessEngine.nextOptimalMove.newX << " " << chessEngine.nextOptimalMove.newY << std::endl;
-		}
-		visualize::visualizeChessBoard(chessEngine.chessboard);
+	ChessEngine chessEngine = ChessEngine(fen3);
+	chessEngine.computeNextOptimalMove();
+	ChessPieceMove move = chessEngine.nextOptimalMove;
+	/*for (auto it : chessEngine.chessboard->nextPossibleMoves) {
+		std::cout << it.oldX << it.oldY << it.newX << it.newY << (it.chesspiece3 == NULL ? ' ' : (char)it.chesspiece3->getType()) << std::endl;
 	}
+	std::cout << move.oldX << move.oldY << move.newX << move.newY;
+	std::cout << (move.chesspiece3 == NULL ? ' ' : (char)move.chesspiece3->getType()) << std::endl;*/
+
+	chessEngine.move(move.oldX, move.oldY, move.newX, move.newY, (move.chesspiece3 == NULL ? ' ' : (char)move.chesspiece3->getType()));
+	if (chessEngine.nextOptimalMove.chesspiece1 != NULL) {
+		std::cout << (char)chessEngine.nextOptimalMove.chesspiece1->getType() << std::endl;
+		std::cout << chessEngine.nextOptimalMove.oldX << " " << chessEngine.nextOptimalMove.oldY << std::endl;
+		std::cout << chessEngine.nextOptimalMove.newX << " " << chessEngine.nextOptimalMove.newY << std::endl;
+	}
+	visualize::visualizeChessBoard(chessEngine.chessboard);
+
 	//system("pause");
 	return 0;
 }

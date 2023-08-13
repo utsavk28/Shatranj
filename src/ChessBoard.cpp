@@ -128,6 +128,10 @@ void ChessBoard::init(std::vector<std::vector<ChessPieceType>> chessTypeBoard) {
 			}
 
 			if (chessboard[i][j] != NULL) {
+				if (chessboard[i][j]->getIsWhite())
+					whitePieceCount++;
+				else
+					blackPieceCount++;
 				chessboard[i][j]->setChessBoard(this);
 				allChessPieces[chessboard[i][j]->id] = chessboard[i][j];
 				chesspieceMap[chessboard[i][j]->getType()].push_back(chessboard[i][j]);
@@ -156,12 +160,12 @@ void ChessBoard::cleanUp(ChessPieceMove move) {
 	ChessPiece* temp = move.chesspiece3;
 	if (temp) {
 		int sz = prevMoves.size();
-		if (sz >= 2) {
-			if (temp->id == prevMoves[sz-2].chesspiece3->id)
+		if (sz >= 2 && prevMoves[sz - 2].chesspiece3) {
+			if (temp->id == prevMoves[sz - 2].chesspiece3->id)
 				return;
 		}
-		if(sz >= 1) {
-			if (temp->id == prevMoves[sz-1].chesspiece3->id)
+		if (sz >= 1 && prevMoves[sz - 1].chesspiece3) {
+			if (temp->id == prevMoves[sz - 1].chesspiece3->id)
 				return;
 		}
 		deleteChessPiece(temp);
@@ -200,7 +204,10 @@ void ChessBoard::move(int oldX, int oldY, int newX, int newY, char promotedTo = 
 				chesspieceMove.chesspiece2->isDead = true;
 				chesspieceMove.chesspiece2->x = -1;
 				chesspieceMove.chesspiece2->y = -1;
-
+				if (chesspieceMove.chesspiece2->getIsWhite())
+					whitePieceCount--;
+				else
+					blackPieceCount--;
 				break;
 			case Castle:
 				rookX = newX + (newX > oldX ? -1 : 1);
@@ -409,12 +416,20 @@ void ChessBoard::undo() {
 			prevMove.chesspiece2->x = enX;
 			prevMove.chesspiece2->y = enY;
 			chessboard[enY][enX] = prevMove.chesspiece2;
+			if (prevMove.chesspiece2->getIsWhite())
+				whitePieceCount++;
+			else
+				blackPieceCount++;
 			break;
 		case Kill:
 			prevMove.chesspiece2->isDead = false;
 			prevMove.chesspiece2->x = newX;
 			prevMove.chesspiece2->y = newY;
 			chessboard[newY][newX] = prevMove.chesspiece2;
+			if (prevMove.chesspiece2->getIsWhite())
+				whitePieceCount++;
+			else
+				blackPieceCount++;
 			break;
 		case Castle:
 			rookX = newX > oldX ? 7 : 0;
@@ -437,73 +452,18 @@ void ChessBoard::undo() {
 void ChessBoard::validatePossibleMoves() {
 	std::vector<ChessPieceMove> validPossibleMoves{};
 
-	std::vector<std::vector<char>> v(8, std::vector<char>(8, '_'));
-	std::vector<std::vector<char>> v1(8, std::vector<char>(8, '_'));
-	for (int i = 0; i < 8; i++) {
-		for (int j = 0; j < 8; j++) {
-			if (chessboard[i][j])
-				v[i][j] = (char)chessboard[i][j]->getType();
-		}
-	}
+
 	std::string fen = toFen();
 
 	for (auto& nextMove : nextPossibleMoves) {
 		char promotedTo = nextMove.chesspiece3 == NULL ? ' ' : (char)nextMove.chesspiece3->getType();
 		move(nextMove.oldX, nextMove.oldY, nextMove.newX, nextMove.newY, promotedTo);
-		for (int i = 0; i < 8; i++) {
-			for (int j = 0; j < 8; j++) {
-				if (chessboard[i][j])
-					v1[i][j] = (char)chessboard[i][j]->getType();
-				else
-					v1[i][j] = '_';
-			}
-		}
-		undo();
-
 		bool flag = isKingVulnerable(isWhitesTurn ^ true);
+		undo();
 		if (!flag)
 			validPossibleMoves.push_back(nextMove);
 		else
 			cleanUp(nextMove);
-
-		std::string fenCheck = toFen();
-		if (fen != fenCheck) {
-			std::cout << "Move => " << std::endl;
-			std::cout << (char)nextMove.chesspiece1->getType() << " ";
-			std::cout << (char)nextMove.chesspieceMoveType << " ";
-			std::cout << nextMove.oldX << " " << nextMove.oldY << " ";
-			std::cout << nextMove.newX << " " << nextMove.newY << " ";
-			std::cout << std::endl;
-			std::cout << "Old => " << std::endl;
-			std::cout << fen << std::endl;
-			for (auto it : v) {
-				for (auto it2 : it) {
-					std::cout << it2;
-				}
-				std::cout << std::endl;
-			}
-
-			std::cout << "Move State => " << std::endl;
-			for (auto it : v1) {
-				for (auto it2 : it) {
-					std::cout << it2;
-				}
-				std::cout << std::endl;
-			}
-			std::cout << "New => " << std::endl;
-			std::cout << fenCheck << std::endl;
-			for (auto it : chessboard) {
-				for (auto it2 : it) {
-					if (it2 != NULL)
-						std::cout << (char)(it2->getType());
-					else
-						std::cout << "_";
-				}
-				std::cout << std::endl;
-			}
-
-		}
-		assert(fen == fenCheck);
 	}
 	nextPossibleMoves = validPossibleMoves;
 }
@@ -524,30 +484,37 @@ void ChessBoard::genNextPossibleMoves()
 		cleanUp(move);
 	}
 	nextPossibleMoves.clear();
-	int count = 0;
-	for (int i = 0; i < 8; i++) {
-		for (int j = 0; j < 8; j++) {
-			if (chessboard[i][j] != NULL && chessboard[i][j]->getIsWhite() == isWhitesTurn) {
-				Pawn* pawn;
-				King* king;
-				switch (chessboard[i][j]->getType()) {
-				case WhitePawnType:
-				case BlackPawnType:
-					pawn = static_cast<Pawn*>(chessboard[i][j]);
-					pawn->generatePossibleMoves();
-					break;
-				case WhiteKingType:
-				case BlackKingType:
-					king = static_cast<King*>(chessboard[i][j]);
-					king->generatePossibleMoves();
-					break;
-				default:
-					chessboard[i][j]->generatePossibleMoves();
-					break;
-				}
+	Pawn* pawn;
+	King* king;
+	std::vector<ChessPieceType> cpts;
+	cpts.push_back({ isWhitesTurn ? WhitePawnType : BlackPawnType });
+	cpts.push_back({ isWhitesTurn ? WhiteKnightType : BlackKnightType });
+	cpts.push_back({ isWhitesTurn ? WhiteQueenType : BlackQueenType });
+	cpts.push_back({ isWhitesTurn ? WhiteBishopType : BlackBishopType });
+	cpts.push_back({ isWhitesTurn ? WhiteRookType : BlackRookType });
+	cpts.push_back({ isWhitesTurn ? WhiteKingType : BlackKingType });
+	for (auto cpt : cpts) {
+		for (auto& it : chesspieceMap[cpt]) {
+			if (it->isDead)
+				continue;
+			switch (it->getType()) {
+			case WhitePawnType:
+			case BlackPawnType:
+				pawn = static_cast<Pawn*>(it);
+				pawn->generatePossibleMoves();
+				break;
+			case WhiteKingType:
+			case BlackKingType:
+				king = static_cast<King*>(it);
+				king->generatePossibleMoves();
+				break;
+			default:
+				it->generatePossibleMoves();
+				break;
 			}
 		}
 	}
+
 	validatePossibleMoves();
 }
 
