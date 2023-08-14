@@ -3,7 +3,8 @@
 ## Todo
 - [x] Baseline
 - [x] Handle Memory Leak
-- [ ] Magic Bitboard
-- [ ] Improved Evaluation Function
+- [x] Magic Bitboard [Pawn]
+- [x] Improved Evaluation Function
 - [x] Implement Position Heuristic
+- [ ] Optimize Implementation
 - [ ] Benchmark!
