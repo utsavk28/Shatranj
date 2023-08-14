@@ -56,10 +56,12 @@ int ChessEngine::evaluateChessboard(ChessBoard* chessboard)
 				switch (chessboard->chessboard[i][j]->getType())
 				{
 				case WhiteKingType:
-					materialScore += kingWt * (fromStart * posKingStartWt[y][x] - toEnd * posKingEndWt[y][x]) / 10.0f;
+					materialScore += kingWt * (toEnd * posKingEndWt[y][x] - fromStart * posKingStartWt[y][x]) / 10.0f;
+					//std::cout<<"White King => "<< kingWt * (fromStart * posKingStartWt[y][x] - toEnd * posKingEndWt[y][x]) / 10.0f<<std::endl;
 					break;
 				case BlackKingType:
-					materialScore -= kingWt * (fromStart * posKingStartWt[y][x] - toEnd * posKingEndWt[y][x]) / 10.0f;
+					materialScore -= kingWt * (toEnd * posKingEndWt[y][x] - fromStart * posKingStartWt[y][x]) / 10.0f;
+					//std::cout << "Black King => " << kingWt * (fromStart * posKingStartWt[y][x] - toEnd * posKingEndWt[y][x]) / 10.0f << std::endl;
 					break;
 
 				case WhiteQueenType:
@@ -102,6 +104,9 @@ int ChessEngine::evaluateChessboard(ChessBoard* chessboard)
 			}
 		}
 	}
+
+	materialScore -= pawnWt2 * (chessboard->getDoubledPawnCount(true) - chessboard->getDoubledPawnCount(false));
+	materialScore -= pawnWt2 * (chessboard->getIsolatedPawnCount(true) - chessboard->getIsolatedPawnCount(false));
 
 	bool isWhitesTurn = chessboard->isWhitesTurn;
 
@@ -198,7 +203,7 @@ void ChessEngine::computeNextOptimalMove()
 	std::string fen = chessboard->toFen();
 	chessboard->genNextPossibleMoves();
 	//minmaxSearch(fen, 0, 2, true);
-	alphabetaSearch(fen, 0, 4, -inf, inf, true);
+	alphabetaSearch(fen, 0, 3, -inf, inf, true);
 	std::cout << nodeCount << std::endl;
 	transposition_table.clear();
 	fenMap.clear();

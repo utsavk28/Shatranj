@@ -81,6 +81,9 @@ ChessBoard::~ChessBoard()
 
 
 void ChessBoard::init(std::vector<std::vector<ChessPieceType>> chessTypeBoard) {
+	blackPawnBitboard = 0;
+	whitePawnBitboard = 0;
+
 	int i, j;
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
@@ -88,6 +91,7 @@ void ChessBoard::init(std::vector<std::vector<ChessPieceType>> chessTypeBoard) {
 			{
 			case WhitePawnType:
 				chessboard[i][j] = new Pawn(j, i, true);
+				whitePawnBitboard |= (ull)1 << (i * 8 + j);
 				break;
 			case WhiteRookType:
 				chessboard[i][j] = new Rook(j, i, true);
@@ -107,6 +111,7 @@ void ChessBoard::init(std::vector<std::vector<ChessPieceType>> chessTypeBoard) {
 
 			case BlackPawnType:
 				chessboard[i][j] = new Pawn(j, i, false);
+				blackPawnBitboard |= (ull)1 << (i * 8 + j);
 				break;
 			case BlackRookType:
 				chessboard[i][j] = new Rook(j, i, false);
@@ -136,9 +141,9 @@ void ChessBoard::init(std::vector<std::vector<ChessPieceType>> chessTypeBoard) {
 				allChessPieces[chessboard[i][j]->id] = chessboard[i][j];
 				chesspieceMap[chessboard[i][j]->getType()].push_back(chessboard[i][j]);
 			}
-
 		}
 	}
+	//std::cout << getIsolatedPawnCount(true) << std::endl;
 }
 
 
@@ -222,6 +227,8 @@ void ChessBoard::move(int oldX, int oldY, int newX, int newY, char promotedTo = 
 			}
 		}
 
+
+
 		if (chesspieceMove.chesspiece1->getType() == (chesspieceMove.chesspiece1->getIsWhite() ? WhitePawnType : BlackPawnType) && chesspieceMove.isPromoted) {
 			ChessPieceType cpt = chesspieceMove.chesspiece1->getIsWhite() ? WhitePawnType : BlackPawnType;
 			chesspieceMove.chesspiece1->isDead = true;
@@ -241,6 +248,32 @@ void ChessBoard::move(int oldX, int oldY, int newX, int newY, char promotedTo = 
 			chessboard[newY][newX] = chesspieceMove.chesspiece3;
 			chesspieceMove.chesspiece3->numOfMoves = 1;
 			chesspieceMap[cpt1].push_back(chesspieceMove.chesspiece3);
+		}
+
+		// Pawn BitBoard
+		if (chesspieceMove.chesspiece1->getType() == (chesspieceMove.chesspiece1->getIsWhite() ? WhitePawnType : BlackPawnType)) {
+			if (chesspieceMove.chesspiece1->getIsWhite()) {
+				whitePawnBitboard ^= (ull)1 << (oldY * 8 + oldX);
+				if (chesspieceMove.isPromoted == false)
+					whitePawnBitboard ^= (ull)1 << (newY * 8 + newY);
+			}
+			else {
+				blackPawnBitboard ^= (ull)1 << (oldY * 8 + oldX);
+				if (chesspieceMove.isPromoted == false)
+					blackPawnBitboard ^= (ull)1 << (newY * 8 + newY);
+			}
+		}
+
+		if (chesspieceMove.chesspiece2 != NULL &&
+			chesspieceMove.chesspiece2->getType() == (chesspieceMove.chesspiece2->getIsWhite() ? WhitePawnType : BlackPawnType)) {
+			if (chesspieceMove.chesspiece2->getIsWhite()) {
+				whitePawnBitboard ^= (ull)1 << (oldY * 8 + oldX);
+				whitePawnBitboard ^= (ull)1 << (newY * 8 + newY);
+			}
+			else {
+				blackPawnBitboard ^= (ull)1 << (oldY * 8 + oldX);
+				blackPawnBitboard ^= (ull)1 << (newY * 8 + newY);
+			}
 		}
 
 		postMoveProcess(chesspieceMove);
@@ -444,6 +477,32 @@ void ChessBoard::undo() {
 			break;
 		}
 
+		// Pawn BitBoard
+		if (prevMove.chesspiece1->getType() == (prevMove.chesspiece1->getIsWhite() ? WhitePawnType : BlackPawnType)) {
+			if (prevMove.chesspiece1->getIsWhite()) {
+				whitePawnBitboard ^= (ull)1 << (oldY * 8 + oldX);
+				if (prevMove.isPromoted == false)
+					whitePawnBitboard ^= (ull)1 << (newY * 8 + newY);
+			}
+			else {
+				blackPawnBitboard ^= (ull)1 << (oldY * 8 + oldX);
+				if (prevMove.isPromoted == false)
+					blackPawnBitboard ^= (ull)1 << (newY * 8 + newY);
+			}
+		}
+
+		if (prevMove.chesspiece2 != NULL &&
+			prevMove.chesspiece2->getType() == (prevMove.chesspiece2->getIsWhite() ? WhitePawnType : BlackPawnType)) {
+			if (prevMove.chesspiece2->getIsWhite()) {
+				whitePawnBitboard ^= (ull)1 << (oldY * 8 + oldX);
+				whitePawnBitboard ^= (ull)1 << (newY * 8 + newY);
+			}
+			else {
+				blackPawnBitboard ^= (ull)1 << (oldY * 8 + oldX);
+				blackPawnBitboard ^= (ull)1 << (newY * 8 + newY);
+			}
+		}
+
 		postUndoProcess(prevMove);
 		isWhitesTurn ^= true;
 	}
@@ -618,6 +677,52 @@ bool ChessBoard::hasPiece(ChessPieceType cpt)
 	}
 	return false;
 }
+
+int ChessBoard::getDoubledPawnCount(bool isWhite)
+{
+	ull temp = isWhite ? whitePawnBitboard : blackPawnBitboard;
+	int count = 0;
+	for (int i = 0; i < 8; i++) {
+		ull temp2 = temp & (fileBitBoard << i);
+		int count2 = 0;
+		while (temp2) {
+			count2 += temp2 % 2;
+			temp2 /= 2;
+		}
+
+		if (count2 > 1)
+			count += count2;
+	}
+
+	return count;
+}
+
+int ChessBoard::getIsolatedPawnCount(bool isWhite)
+{
+	ull temp = isWhite ? whitePawnBitboard : blackPawnBitboard;
+	int count = 0;
+	for (int i = 0; i < 8; i++) {
+		ull temp2 = temp & (fileBitBoard << i);
+		if (temp2 > 0) {
+			if (i > 0) {
+				ull leftAdj = temp & (fileBitBoard << i - 1);
+				if (leftAdj > 0)
+					continue;
+			}
+			if (i + 1 < 8) {
+				ull rightAdj = temp & (fileBitBoard << i + 1);
+				if (rightAdj > 0)
+					continue;
+			}
+			count++;
+		}
+	}
+
+	return count;
+}
+
+
+
 
 void ChessBoard::setIsWhitesTurn(std::string& s) {
 	if (s[0] == 'b')

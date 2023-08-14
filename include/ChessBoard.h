@@ -5,10 +5,10 @@
 #include <map>
 #include <string>
 
+#define ull unsigned long long int
+
 class ChessPiece;
 struct ChessPieceMove;
-
-
 
 class ChessBoard {
 public:
@@ -24,6 +24,8 @@ public:
 	std::map<int, ChessPiece*> allChessPieces;
 	std::map<ChessPieceType, std::vector<ChessPiece*>> chesspieceMap;
 	std::vector<ChessPieceMove> prevMoves,nextPossibleMoves;
+	ull blackPawnBitboard, whitePawnBitboard;
+	ull fileBitBoard = 0x0101010101010101;
 
 	ChessBoard();
 	~ChessBoard();
@@ -47,5 +49,7 @@ public:
 	bool isInsideChessBoard(int x, int y);
 	std::string toFen();
 	bool hasPiece(ChessPieceType cpt);
+	int getDoubledPawnCount(bool isWhite);
+	int getIsolatedPawnCount(bool isWhite);
 };
 
